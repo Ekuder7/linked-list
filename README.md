@@ -1,2 +1,2 @@
 # linked-list
-A simple linked list in c++
+A simple linked list for modern c++
