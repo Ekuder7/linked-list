@@ -1,17 +1,19 @@
 #pragma once
 
-#include <vector> // only for constructor
+#include <memory>
+
+#include <vector>
 #include <stdexcept>
 
 template <class T>
-class list
+class LinkedList
 {
 public:
 	// Default constructor
-	list() : _Root(nullptr), _Size(0) {}
+	LinkedList() {}
 
-	// Constructor from std::vector
-	explicit list(std::vector<T> vec) : _Root(nullptr), _Size(0)
+	// Constructor from std::initializer_list
+	explicit LinkedList(std::initializer_list<T> vec)
 	{
 		for (const T& i : vec)
 		{
@@ -19,7 +21,7 @@ public:
 		}
 	}
 
-	~list()
+	~LinkedList()
 	{
 		while (_Size > 0)
 		{
@@ -29,16 +31,16 @@ public:
 
 	void push_back(const T& data)
 	{
-		ListNode* newNode = new ListNode(data);
+		std::shared_ptr<ListNode> newNode{ std::make_shared<ListNode>(data) };
 
-		if (_Root == nullptr)
+		if (_Root.get() == nullptr)
 		{
 			_Root = newNode;
 		}
 		else
 		{
 			// Finding last node
-			ListNode* LastNode = _Root;
+			std::shared_ptr<ListNode> LastNode{ _Root };
 			while (LastNode->NextListNode != nullptr)
 			{
 				LastNode = LastNode->NextListNode;
@@ -54,21 +56,23 @@ public:
 	{
 		if (_Size == 1)
 		{
-			delete _Root;
-
+			//delete _Root;
 			_Root = nullptr;
+
+			--_Size;
 			return;
 		}
 
 		// Finding pre-last node
-		ListNode* PrelastNode = _Root;
+		std::shared_ptr<ListNode> PrelastNode{ _Root };
+		//ListNode* PrelastNode = _Root;
 
-		while (PrelastNode->NextListNode->NextListNode != nullptr)
+		while (PrelastNode->NextListNode->NextListNode.get() != nullptr)
 		{
 			PrelastNode = PrelastNode->NextListNode;
 		}
 
-		delete PrelastNode->NextListNode;
+		//delete PrelastNode->NextListNode;
 		PrelastNode->NextListNode = nullptr;
 
 		--_Size;
@@ -87,7 +91,8 @@ public:
 			return _Root->Data;
 		}
 
-		ListNode* CurrentNode = _Root;
+		//ListNode* CurrentNode = _Root;
+		std::shared_ptr<ListNode> CurrentNode{ _Root };
 
 		for (size_t i = 0; i < index; ++i)
 		{
@@ -117,7 +122,8 @@ public:
 			return _Root->Data;
 		}
 
-		ListNode* CurrentNode = _Root;
+		//ListNode* CurrentNode = _Root;
+		std::shared_ptr<ListNode> CurrentNode{ _Root };
 
 		for (size_t i = 0; i < index; ++i)
 		{
@@ -142,11 +148,13 @@ public:
 			return;
 		}
 
-		ListNode* newNode = new ListNode(data);
+		std::shared_ptr<ListNode> newNode{ std::make_shared<ListNode>(data) };
+		//ListNode* newNode = new ListNode(data);
 
 		if (index == 0)
 		{
-			ListNode* PrevNextNode = _Root;
+			std::shared_ptr<ListNode> PrevNextNode{ _Root };
+			//ListNode* PrevNextNode = _Root;
 
 			_Root = newNode;
 
@@ -161,7 +169,8 @@ public:
 			return;
 		}
 
-		ListNode* CurrentNode = _Root;
+		std::shared_ptr<ListNode> CurrentNode{ _Root };
+		//ListNode* CurrentNode = _Root;
 
 		for (size_t i = 0; i < index - 1; ++i)
 		{
@@ -174,8 +183,8 @@ public:
 				throw std::invalid_argument("Invalid index");
 			}
 		}
-
-		ListNode* PrevNextNode = CurrentNode->NextListNode;
+		std::shared_ptr<ListNode> PrevNextNode{ CurrentNode->NextListNode };
+		//ListNode* PrevNextNode = CurrentNode->NextListNode;
 
 		CurrentNode->NextListNode = newNode;
 
@@ -194,9 +203,10 @@ public:
 
 		if (index == 0)
 		{
-			ListNode* NextNode = _Root->NextListNode;
+			std::shared_ptr<ListNode> NextNode{ _Root->NextListNode };
+			//ListNode* NextNode = _Root->NextListNode;
 
-			delete _Root;
+			//delete _Root;
 
 			_Root = NextNode;
 
@@ -208,8 +218,9 @@ public:
 			pop_back();
 			return;
 		}
-
-		ListNode* CurrentNode = _Root;
+		
+		std::shared_ptr<ListNode> CurrentNode{ _Root };
+		//ListNode* CurrentNode = _Root;
 
 		for (size_t i = 0; i < index - 1; ++i)
 		{
@@ -223,9 +234,10 @@ public:
 			}
 		}
 
-		ListNode* NextNode = CurrentNode->NextListNode->NextListNode;
+		std::shared_ptr<ListNode> NextNode{ CurrentNode->NextListNode->NextListNode };
+		//ListNode* NextNode = CurrentNode->NextListNode->NextListNode;
 
-		delete CurrentNode->NextListNode;
+		//delete CurrentNode->NextListNode;
 
 		CurrentNode->NextListNode = NextNode;
 
@@ -246,11 +258,12 @@ private:
 	struct ListNode
 	{
 		T Data;
-		ListNode* NextListNode;
 
-		ListNode(T data) : Data(data), NextListNode(nullptr) {}
+		std::shared_ptr<ListNode> NextListNode{ nullptr };
+
+		ListNode(T data) : Data(data) {}
 	};
 
-	size_t _Size;
-	ListNode* _Root;
+	size_t _Size = 0;
+	std::shared_ptr<ListNode> _Root{ nullptr };
 };
